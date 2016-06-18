@@ -21,6 +21,7 @@ import com.pcmsolutions.util.RWLock;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.prefs.Preferences;
 
 
@@ -31,8 +32,8 @@ public class ZMidiSystem implements ZDisposable {
     // private static volatile int TRANSACTION_PRIORITY = 5;
 
     public static final CALock midiLock = new CALock();
-    final Hashtable<MidiDevice.Info, ZMidiDevice> deviceMap = new Hashtable<MidiDevice.Info, ZMidiDevice>();
-    static final Vector listeners = new Vector();
+    final HashMap<MidiDevice.Info, ZMidiDevice> deviceMap = new HashMap<>();
+    static final CopyOnWriteArrayList listeners = new CopyOnWriteArrayList();
 
     // PREFERENCE STUFF
     public static final int CONCURRENCY_LOW = 0;
@@ -51,7 +52,7 @@ public class ZMidiSystem implements ZDisposable {
     final MidiInputQ midiIn_q = new MidiInputQ();
 
     static class MidiInputQ {
-        private final ArrayList<FinalMidiMessage> queue = new ArrayList<FinalMidiMessage>(2000);
+        private final ArrayList<FinalMidiMessage> queue = new ArrayList<>(2000);
         private int mark = 0;
 
         public synchronized void addMsg(FinalMidiMessage msg) {
@@ -99,6 +100,7 @@ public class ZMidiSystem implements ZDisposable {
 
         static volatile int retentionDaemonSleepTime = 10000;
         ZDefaultThread retentionDaemon = new ZDefaultThread("Midi message retention daemon") {
+            @Override
             public void runBody() {
                 int nextClipIndex = -1;
                 while (shouldRun) {
@@ -110,7 +112,7 @@ public class ZMidiSystem implements ZDisposable {
                         synchronized (MidiInputQ.this) {
                             try {
                                 if (nextClipIndex != -1) {
-                                    List<FinalMidiMessage> rem = new ArrayList<FinalMidiMessage>(queue.subList(nextClipIndex, queue.size()));
+                                    List<FinalMidiMessage> rem = new ArrayList<>(queue.subList(nextClipIndex, queue.size()));
                                     queue.clear();
                                     queue.addAll(rem);
                                     //System.out.println("MARK = " + mark());
@@ -262,7 +264,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     void fireMidiSystemChanged() {
-        final Vector listeners_clone = (Vector) listeners.clone();
+        final CopyOnWriteArrayList listeners_clone = (CopyOnWriteArrayList) listeners.clone();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 for (Iterator i = listeners_clone.iterator(); i.hasNext();)
@@ -531,18 +533,21 @@ public class ZMidiSystem implements ZDisposable {
             try {
                 //if (  false){//getRealDevice().getMaxTransmitters() == 0) {
                 try {
-                    if (getRealDevice().isOpen() && getRealDevice().getTransmitters().size() == 0 && getRealDevice().getReceivers().size() == 0) {
+                    if (getRealDevice().isOpen())
+                        if ( ((getRealDevice().getTransmitters() != null) && (getRealDevice().getTransmitters().isEmpty() )) &&
+                              ((getRealDevice().getReceivers() != null) && (getRealDevice().getReceivers().isEmpty() ))  )
+                        {
                         try {
                             System.out.println("Midi device closing: " + getRealDevice().getDeviceInfo().getName());
                             getRealDevice().close();
                             System.out.println("Midi device closed: " + getRealDevice().getDeviceInfo().getName());
 
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            System.out.println(e);
                         }
                     }
                 } catch (MidiUnavailableException e) {
-                    e.printStackTrace();
+                    System.out.println(e);
                 }
                 //  }else
                 //     System.out.println("Midi device left opened: " + getRealDevice().getDeviceInfo().getName());

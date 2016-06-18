@@ -153,11 +153,7 @@ abstract class Impl_TaskQ <T extends Task> implements ManageableTaskQ<T>, ZDispo
                 try {
                     synchronized (cb_queue) {
                         final T t = i.next();
-                        cb_queue.add(new Runnable() {
-                            public void run() {
-                                t.cbCancelled();
-                            }
-                        });
+                        cb_queue.add(t::cbCancelled);
                         cb_queue.notifyAll();
                     }
                 } catch (Exception e) {

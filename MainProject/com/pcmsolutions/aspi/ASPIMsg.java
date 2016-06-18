@@ -14,11 +14,12 @@ public class ASPIMsg {
     //public static Exception lastCriticalASPIException = null;
     private static xFunction aspiSend = null;
     private static xFunction aspiGetSupportInfo = null;
-    private static boolean aspiDisabled = false;
+    private static boolean aspiDisabled = true;
 
     public synchronized static void assertASPI() throws ASPIUnavailableException {
         if (aspiDisabled) {
             throw new ASPIUnavailableException("ASPI disabled");
+        
         }
         try {
             if (aspiSend == null) {
@@ -32,21 +33,11 @@ public class ASPIMsg {
                 System.out.println("Loaded ASPI GetSupport");
             }
             aspiGetSupportInfo.invoke();
-        } catch (LibraryNotFoundException e) {
+
+        } catch (LibraryNotFoundException | FunctionNotFoundException | IllegalSignatureException | WrongArgumentNumberException | IncompatibleArgumentTypeException e) {
             e.printStackTrace();
             aspiDisabled = true;
             throw new ASPIUnavailableException(e.getMessage());
-        } catch (FunctionNotFoundException e) {
-            e.printStackTrace();
-            aspiDisabled = true;
-            throw new ASPIUnavailableException(e.getMessage());
-        } catch (IllegalSignatureException e) {
-            e.printStackTrace();
-            aspiDisabled = true;
-            throw new ASPIUnavailableException(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            aspiDisabled = true;
         }
         /*catch (WrongArgumentNumberException e) {
             e.printStackTrace();
@@ -307,15 +298,15 @@ public class ASPIMsg {
     private static Pointer pRecvBuf;
 
     static {
+        // Permanent aspi disabled, workaround for os x
+        aspiDisabled = true;
+        /*
         try {
             pRecvBuf = (Pointer) Argument.create("int*", recvBuf);
-        } catch (IllegalSignatureException e) {
-            aspiDisabled = true;
-        } catch (TypesDifferentException e) {
-            aspiDisabled = true;
-        } catch (IllegalStringConversionException e) {
+        } catch (IllegalSignatureException | TypesDifferentException | IllegalStringConversionException e) {
             aspiDisabled = true;
         }
+        */
     }
 
     public static class SRB_ExecSCSICmd extends SRB {

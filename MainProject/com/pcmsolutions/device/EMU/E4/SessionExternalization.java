@@ -177,9 +177,7 @@ public class SessionExternalization {
             return (Object[]) o;
         } catch (FileNotFoundException e) {
             throw new ExternalizationException(e.getMessage());
-        } catch (IOException e) {
-            throw new ExternalizationException(e.getMessage());
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new ExternalizationException(e.getMessage());
         }
     }
@@ -202,9 +200,7 @@ public class SessionExternalization {
             return (Object[]) o;
         } catch (FileNotFoundException e) {
             throw new ExternalizationException(e.getMessage());
-        } catch (IOException e) {
-            throw new ExternalizationException(e.getMessage());
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new ExternalizationException(e.getMessage());
         }
     }
