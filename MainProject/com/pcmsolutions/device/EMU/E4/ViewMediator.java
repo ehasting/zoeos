@@ -27,22 +27,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * User: paulmeehan
- * Date: 20-Jan-2004
- * Time: 10:20:29
+ * User: paulmeehan Date: 20-Jan-2004 Time: 10:20:29
  */
 class ViewMediator {
+
     private final static ManageableTicketedQ viewMediatorQ = QueueFactory.createTicketedQueue(ViewMediator.class.getClass(), "viewMediatorQ", 6);
 
     static {
         viewMediatorQ.start();
     }
 
-    public static interface PresetIndexProvider
-    {
+    public static interface PresetIndexProvider {
+
         Integer getPresetIndex();
     }
+
     public static interface ViewTask {
+
         public CallbackTaskResult open(boolean activate);
 
         public CallbackTaskResult open();
@@ -51,6 +52,7 @@ class ViewMediator {
     }
 
     private static abstract class AbstractViewTask extends ViewCallbackTask implements ViewTask {
+
         private DesktopElement[] desktopElements;
 
         public DesktopElement[] getDesktopElements() {
@@ -71,7 +73,7 @@ class ViewMediator {
 
         // result is Boolean - false for view already assertOpen, true for view opened
         public CallbackTaskResult open(boolean activate) {
-            return openViews(desktopElements, (activate?0:-1));
+            return openViews(desktopElements, (activate ? 0 : -1));
         }
 
         // result is Boolean - false for view already assertOpen, true for view opened
@@ -85,6 +87,7 @@ class ViewMediator {
     }
 
     private static class DeviceCloseBehaviour implements ActivityContext, Serializable {
+
         private DeviceContext device;
 
         public DeviceCloseBehaviour(DeviceContext device) {
@@ -96,12 +99,14 @@ class ViewMediator {
                 viewMediatorQ.getPostableTicket(new TicketRunnable() {
                     public void run() throws Exception {
                         try {
-                            if (device.getState() != ZExternalDevice.STATE_REMOVED)
+                            if (device.getState() != ZExternalDevice.STATE_REMOVED) {
                                 if (UserMessaging.askYesNo("Remove device " + device.getName() + " ?")) {
-                                    if (device.getState() == ZExternalDevice.STATE_RUNNING)
+                                    if (device.getState() == ZExternalDevice.STATE_RUNNING) {
                                         device.stopDevice(true, "User request");
+                                    }
                                     device.removeDevice(true);
                                 }
+                            }
                         } catch (IllegalStateTransitionException e1) {
                             e1.printStackTrace();
                         } catch (ZDeviceCannotBeRemovedException e1) {
@@ -133,14 +138,17 @@ class ViewMediator {
     }
 
     public static class TaskDeviceWorkspace extends AbstractViewTask {
+
         public TaskDeviceWorkspace(final DeviceContext device) {
             init(makeDeviceWorkspaceDesktopElement(device, ViewFactory.provideDefaultView(device),
                     new DeviceCloseBehaviour(device), new Impl_DesktopNodeDescriptor(new Object[]{device}, false)));
         }
     }
 
-    public static class PresetDesktopElement extends DeviceDesktopElement implements PresetIndexProvider{
+    public static class PresetDesktopElement extends DeviceDesktopElement implements PresetIndexProvider {
+
         Integer preset;
+
         public PresetDesktopElement(Integer preset, ViewInstance vi, ActivityContext activityContext, DesktopNodeDescriptor nodalDescriptor, DeviceContext device) {
             super(vi, activityContext, nodalDescriptor, device);
             this.preset = preset;
@@ -160,11 +168,13 @@ class ViewMediator {
     }
 
     public static class TaskPreset extends AbstractViewTask {
+
         private static final String asChildTitle = "Main";
         private static final String asChildReducedTitle = "Main";
         private TaskPresetUser presetUserTask;
 
         static class PresetActivityContext implements ActivityContext, Serializable {
+
             ReadablePreset preset;
             DesktopElement de;
 
@@ -189,17 +199,19 @@ class ViewMediator {
             }
 
             public void sendMessage(String msg) {
-                if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_EMPTY) || msg.equals(ViewMessaging.MSG_BROADCAST_CLOSE_EMPTY))
+                if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_EMPTY) || msg.equals(ViewMessaging.MSG_BROADCAST_CLOSE_EMPTY)) {
                     try {
-                        if (preset.isEmpty())
+                        if (preset.isEmpty()) {
                             closePresetView();
+                        }
                     } catch (PresetException e) {
                         e.printStackTrace();
                     }
-                else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_FLASH) && !preset.isUser())
+                } else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_FLASH) && !preset.isUser()) {
                     closePresetView();
-                else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_USER) && preset.isUser())
+                } else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_USER) && preset.isUser()) {
                     closePresetView();
+                }
             }
 
             public boolean testCondition(String condition) {
@@ -222,7 +234,7 @@ class ViewMediator {
             /*
             init(new DesktopElement[]{makeDeviceWorkspaceDesktopElement(p.getDeviceContext(), ViewFactory.provideDefaultView(p),
                     false, pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, asChildTitle, asChildReducedTitle)), presetUserTask.getFirstDesktopElement()});
-            */
+             */
             init(new DesktopElement[]{new PresetDesktopElement(p.getPreset(), ViewFactory.provideDefaultView(p), pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, asChildTitle, asChildReducedTitle), p.getDeviceContext()), presetUserTask.getFirstDesktopElement()});
             pac.de = getFirstDesktopElement();
         }
@@ -233,7 +245,7 @@ class ViewMediator {
             /*
             init(new DesktopElement[]{makeDeviceWorkspaceDesktopElement(p.getDeviceContext(), ViewFactory.provideDefaultView(p),
                     false, pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, asChildTitle, asChildReducedTitle)), presetUserTask.getFirstDesktopElement()});
-                    */
+             */
             init(new DesktopElement[]{new PresetDesktopElement(p.getPreset(), ViewFactory.provideDefaultView(p), pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, asChildTitle, asChildReducedTitle), p.getDeviceContext()), presetUserTask.getFirstDesktopElement()});
             pac.de = getFirstDesktopElement();
         }
@@ -244,6 +256,7 @@ class ViewMediator {
         //private static final String asChildReducedTitle = "Main";
 
         static class PresetUserActivityContext implements ActivityContext, Serializable {
+
             ReadablePreset p;
             DesktopElement de;
 
@@ -269,17 +282,19 @@ class ViewMediator {
             }
 
             public void sendMessage(String msg) {
-                if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_EMPTY) || msg.equals(ViewMessaging.MSG_BROADCAST_CLOSE_EMPTY))
+                if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_EMPTY) || msg.equals(ViewMessaging.MSG_BROADCAST_CLOSE_EMPTY)) {
                     try {
-                        if (p.isEmpty())
+                        if (p.isEmpty()) {
                             closePresetView();
+                        }
                     } catch (PresetException e) {
                         e.printStackTrace();
                     }
-                else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_FLASH) && !p.isUser())
+                } else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_FLASH) && !p.isUser()) {
                     closePresetView();
-                else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_USER) && p.isUser())
+                } else if (msg.equals(ViewMessaging.MSG_CLOSE_PRESET_USER) && p.isUser()) {
                     closePresetView();
+                }
             }
 
             public boolean testCondition(String condition) {
@@ -301,7 +316,7 @@ class ViewMediator {
             /*
             init(makeDeviceWorkspaceDesktopElement(p.getDeviceContext(), ViewFactory.provideUserView(p),
                     false, pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, true)));
-            */
+             */
             init(new DesktopElement[]{new PresetDesktopElement(p.getPreset(), ViewFactory.provideUserView(p), pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, true), p.getDeviceContext())});
             pac.de = getFirstDesktopElement();
         }
@@ -311,16 +326,20 @@ class ViewMediator {
 
             //init(makeDeviceWorkspaceDesktopElement(p.getDeviceContext(), ViewFactory.provideUserView(p),
             //        pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, true)));
-
             init(new DesktopElement[]{new PresetDesktopElement(p.getPreset(), ViewFactory.provideUserView(p), pac, new Impl_DesktopNodeDescriptor(new Object[]{p}, true), p.getDeviceContext())});
             pac.de = getFirstDesktopElement();
         }
     }
 
     public static class TabbedTaskVoice implements ViewTask {
+
         private TaskVoice[] tasks;
 
         public TabbedTaskVoice(final ReadablePreset.ReadableVoice voice, boolean groupEnvelopes) {
+            tasks = new TaskVoice[2];
+            tasks[0] = new TaskVoice(voice, true);
+            tasks[1] = new TaskVoice(voice, VoiceSections.VOICE_EDIT, VoiceSections.voiceEditTitle);
+            /*
             if (groupEnvelopes) {
                 tasks = new TaskVoice[6];
                 tasks[0] = new TaskVoice(voice, true);
@@ -342,6 +361,7 @@ class ViewMediator {
                 tasks[6] = new TaskVoice(voice, VoiceSections.VOICE_LFO, VoiceSections.voiceLfoTitle);
                 tasks[7] = new TaskVoice(voice, VoiceSections.VOICE_CORDS, VoiceSections.voiceCordsTitle);
             }
+             */
         }
 
         public TabbedTaskVoice(final ContextEditablePreset.EditableVoice voice, boolean groupEnvelopes) {
@@ -349,6 +369,10 @@ class ViewMediator {
         }
 
         public TabbedTaskVoice(final ContextEditablePreset.EditableVoice[] voices, boolean groupEnvelopes) {
+            tasks = new TaskVoice[2];
+            tasks[0] = new TaskVoice(voices, true);
+            tasks[1] = new TaskVoice(voices, VoiceSections.VOICE_EDIT, VoiceSections.voiceEditTitle);
+            /*
             if (groupEnvelopes) {
                 tasks = new TaskVoice[6];
                 tasks[0] = new TaskVoice(voices, true);
@@ -370,19 +394,23 @@ class ViewMediator {
                 tasks[6] = new TaskVoice(voices, VoiceSections.VOICE_LFO, VoiceSections.voiceLfoTitle);
                 tasks[7] = new TaskVoice(voices, VoiceSections.VOICE_CORDS, VoiceSections.voiceCordsTitle);
             }
+             */
         }
 
         public CallbackTaskResult open(boolean activate) {
             CallbackTaskResult rv = null;
-            for (int i = 0; i < tasks.length; i++)
+            for (int i = 0; i < tasks.length; i++) {
                 if (i == 0) {
                     rv = tasks[i].open(activate);
-                    if (!rv.suceeded() || (rv.suceeded() && !((Boolean) rv.getResult()).booleanValue()))
+                    if (!rv.suceeded() || (rv.suceeded() && !((Boolean) rv.getResult()).booleanValue())) {
                         return rv;
-                } else if (i == 1)
+                    }
+                } else if (i == 1) {
                     rv = tasks[i].open(activate);
-                else
+                } else {
                     rv = tasks[i].open(false);
+                }
+            }
             return rv;
         }
 
@@ -392,8 +420,9 @@ class ViewMediator {
 
         public CallbackTaskResult close() {
             CallbackTaskResult rv = null;
-            for (int i = 0; i < tasks.length; i++)
+            for (int i = 0; i < tasks.length; i++) {
                 rv = tasks[i].close();
+            }
             return rv;
         }
     }
@@ -401,6 +430,7 @@ class ViewMediator {
     public static class TaskVoice extends AbstractViewTask {
 
         static class VoiceActivityContext implements ActivityContext, Serializable {
+
             ReadablePreset.ReadableVoice[] voices;
             DesktopElement de;
 
@@ -430,9 +460,11 @@ class ViewMediator {
 
             boolean checkVoices() {
                 try {
-                    for (int i = 0; i < voices.length; i++)
-                        if (voices[i].getVoiceNumber().intValue() > voices[i].getPreset().numVoices() - 1)
+                    for (int i = 0; i < voices.length; i++) {
+                        if (voices[i].getVoiceNumber().intValue() > voices[i].getPreset().numVoices() - 1) {
                             return false;
+                        }
+                    }
                     return true;
                 } catch (EmptyException e) {
                     e.printStackTrace();
@@ -444,10 +476,12 @@ class ViewMediator {
 
             public void sendMessage(String msg) {
                 if (msg.equals(ViewMessaging.MSG_CLOSE_VOICE_EMPTY) || msg.equals(ViewMessaging.MSG_BROADCAST_CLOSE_EMPTY)) {
-                    if (!checkVoices())
+                    if (!checkVoices()) {
                         closeVoiceView();
-                } else if (msg.equals(ViewMessaging.MSG_CLOSE_VOICE))
+                    }
+                } else if (msg.equals(ViewMessaging.MSG_CLOSE_VOICE)) {
                     closeVoiceView();
+                }
             }
 
             public boolean testCondition(String condition) {
@@ -520,6 +554,7 @@ class ViewMediator {
     }
 
     public static class TaskDevice extends AbstractViewTask {
+
         public TaskDevice(final DeviceContext device) {
             init(makeDeviceDesktopElement(device, ViewFactory.provideDeviceView(device),
                     StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor(false)));
@@ -527,6 +562,7 @@ class ViewMediator {
     }
 
     public static class TaskProperties extends AbstractViewTask {
+
         public TaskProperties(final DeviceContext device) {
             init(makeDeviceDesktopElement(device, ViewFactory.providePropertiesView(device),
                     StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor(false)));
@@ -534,6 +570,7 @@ class ViewMediator {
     }
 
     public static class TaskPiano extends AbstractViewTask {
+
         public TaskPiano(final DeviceContext device) {
             init(makeDeviceDesktopElement(device, ViewFactory.providePianoView(device),
                     StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor(false)));
@@ -541,7 +578,9 @@ class ViewMediator {
     }
 
     public static class TaskDefaultPresetContext extends AbstractViewTask {
+
         static class PresetContextActivityContext implements ActivityContext {
+
             DesktopElement de;
 
             public boolean tryClosing() {
@@ -573,6 +612,7 @@ class ViewMediator {
             public void deactivated() {
             }
         };
+
         public TaskDefaultPresetContext(final DeviceContext device) {
             PresetContextActivityContext ac = new PresetContextActivityContext();
             init(makeDeviceDesktopElement(device, ViewFactory.provideDefaultPresetContextView(device),
@@ -582,7 +622,9 @@ class ViewMediator {
     }
 
     public static class TaskDefaultSampleContext extends AbstractViewTask {
+
         static class SampleContextActivityContext implements ActivityContext {
+
             DesktopElement de;
 
             public boolean tryClosing() {
@@ -624,6 +666,7 @@ class ViewMediator {
     }
 
     public static class TaskMultiMode extends AbstractViewTask {
+
         public TaskMultiMode(final DeviceContext device) {
             init(makeDeviceDesktopElement(device, ViewFactory.provideMultiModeView(device),
                     StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor(false)));
@@ -631,6 +674,7 @@ class ViewMediator {
     }
 
     public static class TaskMaster extends AbstractViewTask {
+
         public TaskMaster(DeviceContext device) {
             init(makeDeviceDesktopElement(device, ViewFactory.provideMasterView(device),
                     StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor(false)));
@@ -671,13 +715,15 @@ class ViewMediator {
             }
         });
     }
-     public static DesktopElement[] evaluateWorkspaceCondition(final DeviceContext device, final String condition) throws Exception {
+
+    public static DesktopElement[] evaluateWorkspaceCondition(final DeviceContext device, final String condition) throws Exception {
         return (DesktopElement[]) executeViewTask(new CallbackTaskRunnable() {
             public Object run() throws Exception {
                 return ZoeosFrame.getInstance().getZDesktopManager().evaluateCondition(new ViewPath(ZDesktopManager.dockWORKSPACE, ViewFactory.provideDefaultDesktopNames(device)), condition);
             }
         });
     }
+
     public static void sendPresetContextMessage(final DeviceContext device, final String msg) throws Exception {
         executeViewTask(new CallbackTaskRunnable() {
             public Object run() throws Exception {
@@ -711,10 +757,11 @@ class ViewMediator {
         CallbackTask ct = new CallbackTask();
         ct.init(ctr);
         CallbackTaskResult ctres = ct.execute();
-        if (ctres.suceeded())
+        if (ctres.suceeded()) {
             return ctres.getResult();
-        else
+        } else {
             throw ctres.getException();
+        }
     }
 
     public static DeviceDesktopElement[] getAllDeviceDesktopElements(final DeviceContext device) throws Exception {
@@ -805,6 +852,7 @@ class ViewMediator {
     }
 
     private static class DeviceDesktopElement extends AbstractDesktopElement {
+
         DeviceContext device;
         ViewInstance viewInstance;
 
@@ -832,11 +880,13 @@ class ViewMediator {
     }
 
     private static class DeviceWorkspaceDesktopElement extends DeviceDesktopElement {
+
         public DeviceWorkspaceDesktopElement(ViewInstance vi, ActivityContext activityContext, DesktopNodeDescriptor nodalDescriptor, DeviceContext device) {
             super(vi, new ActivityContextWrapper(activityContext, device), nodalDescriptor, device);
         }
 
         private static class ActivityContextWrapper implements ActivityContext {
+
             private ActivityContext enclosedAC;
             private DeviceContext device;
 
@@ -863,12 +913,13 @@ class ViewMediator {
 
             public void activated() {
                 enclosedAC.activated();
-                if (device.getDevicePreferences().ZPREF_syncPalettes.getValue())
+                if (device.getDevicePreferences().ZPREF_syncPalettes.getValue()) {
                     try {
                         device.getViewManager().activateDevicePalettes().post();
                     } catch (ResourceUnavailableException e) {
                         e.printStackTrace();
                     }
+                }
             }
 
             public void deactivated() {
@@ -878,6 +929,7 @@ class ViewMediator {
     }
 
     private static class ViewCallbackTask extends CallbackTask {
+
         // create
         public static DesktopElement makeDeviceDesktopElement(final DeviceContext device, final ViewInstance vi, final ActivityContext activityContext, final DesktopNodeDescriptor nd) {
             return new DeviceDesktopElement(vi, activityContext, nd, device);
@@ -900,8 +952,9 @@ class ViewMediator {
             init(new CallbackTaskRunnable() {
                 public Object run() throws ComponentGenerationException, ChildViewNotAllowedException, LogicalHierarchyException {
                     Boolean b = Boolean.TRUE;
-                    for (int i = 0; i < desktopElements.length; i++)
+                    for (int i = 0; i < desktopElements.length; i++) {
                         b = new Boolean(b.booleanValue() && ZoeosFrame.getInstance().getZDesktopManager().addDesktopElement(desktopElements[i], activateIndex == i ? true : false));
+                    }
                     return b;
                 }
             });
@@ -922,8 +975,9 @@ class ViewMediator {
             init(new CallbackTaskRunnable() {
                 public Object run() {
                     Boolean b = Boolean.TRUE;
-                    for (int i = desktopElements.length - 1; i >= 0; i--)
+                    for (int i = desktopElements.length - 1; i >= 0; i--) {
                         b = new Boolean(b.booleanValue() && ZoeosFrame.getInstance().getZDesktopManager().removeDesktopElement(desktopElements[i]));
+                    }
                     return b;
                 }
             });
@@ -940,4 +994,3 @@ class ViewMediator {
         }
     }
 }
-

@@ -44,7 +44,7 @@ public class FuzzyLineBorder extends LineBorder {
         Color oldColor = g.getColor();
         /// PENDING(klobad) How/should do we support Roundtangles?
         for (int i = 0; i < thickness; i++) {
-            g.setColor(UIColors.applyAlpha(lineColor, UIColors.getFuzzyAlpha(i, thickness, fadingIn)));
+            g.setColor(UIColors.applyAlpha(lineColor, 127));
             if (!roundedCorners)
                 g.drawRect(x + i, y + i, width - i - i - 1, height - i - i - 1);
             else

@@ -50,13 +50,14 @@ public class FadeLabel extends JLabel {
         this.fadingIn = fadingIn;
     }
 
+    @Override
     protected void paintComponent(Graphics g) {
         Color oldColor = g.getColor();
         int i;
         int w = getWidth();
         int h = getHeight();
         for (i = 0; i < h; i++) {
-            g.setColor(UIColors.applyAlpha(getBackground(), UIColors.getFuzzyAlpha(i, h, fadingIn)));
+            g.setColor(UIColors.applyAlpha(getBackground(), 127));
             g.drawLine(0, i, w, i);
         }
         g.setColor(oldColor);

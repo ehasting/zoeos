@@ -307,6 +307,9 @@ public class ASPIMsg {
     private static Pointer pRecvBuf;
 
     static {
+        aspiDisabled = true;
+        // TODO: Ignore for OS X
+        /*
         try {
             pRecvBuf = (Pointer) Argument.create("int*", recvBuf);
         } catch (IllegalSignatureException e) {
@@ -315,7 +318,7 @@ public class ASPIMsg {
             aspiDisabled = true;
         } catch (IllegalStringConversionException e) {
             aspiDisabled = true;
-        }
+        }*/
     }
 
     public static class SRB_ExecSCSICmd extends SRB {

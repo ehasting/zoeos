@@ -3,7 +3,6 @@
  *
  * Created on November 12, 2002, 12:22 AM
  */
-
 package com.pcmsolutions.comms;
 
 import com.pcmsolutions.device.EMU.E4.RemoteUnreachableException;
@@ -22,7 +21,6 @@ import javax.sound.midi.*;
 import javax.swing.*;
 import java.util.*;
 import java.util.prefs.Preferences;
-
 
 /**
  * @author pmeehan
@@ -51,6 +49,7 @@ public class ZMidiSystem implements ZDisposable {
     final MidiInputQ midiIn_q = new MidiInputQ();
 
     static class MidiInputQ {
+
         private final ArrayList<FinalMidiMessage> queue = new ArrayList<FinalMidiMessage>(2000);
         private int mark = 0;
 
@@ -75,13 +74,14 @@ public class ZMidiSystem implements ZDisposable {
             FinalMidiMessage m;
             int searchIndex = queue.size() - (mark - prevMark);
 
-            if (searchIndex < 0)
+            if (searchIndex < 0) {
                 searchIndex = 0;
+            }
 
             for (int n = searchIndex, p = queue.size(); n < p; n++) {
                 m = queue.get(n);
                 if (m != null && m.getSource().equals(source)) {
-                    for (int f = 0; f < filters.length; f++)
+                    for (int f = 0; f < filters.length; f++) {
                         if (filters[f] != null) {
                             filt_msg = filters[f].filter(m);
                             if (filt_msg != null) {
@@ -92,6 +92,7 @@ public class ZMidiSystem implements ZDisposable {
                                 //     System.out.println("msg ref > 1");
                             }
                         }
+                    }
                 }
             }
             return mark;
@@ -132,13 +133,14 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     static FinalMidiMessage finalizeMidiMessage(MidiMessage m, MidiDevice.Info source) {
-        if (m instanceof SysexMessage)
+        if (m instanceof SysexMessage) {
             return new Sysex(m, source);
-        if (m instanceof ShortMessage)
+        }
+        if (m instanceof ShortMessage) {
             return new Short(m, source);
+        }
         return null;
     }
-
 
     static final RWLock globalSysexLock = new RWLock();
     static final RWLock secondaryGlobalSysexLock = new RWLock();
@@ -250,6 +252,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     public interface MidiSystemListener {
+
         public void midiSystemChanged(ZMidiSystem msf);
     }
 
@@ -265,8 +268,9 @@ public class ZMidiSystem implements ZDisposable {
         final Vector listeners_clone = (Vector) listeners.clone();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                for (Iterator i = listeners_clone.iterator(); i.hasNext();)
+                for (Iterator i = listeners_clone.iterator(); i.hasNext();) {
                     ((MidiSystemListener) i.next()).midiSystemChanged(ZMidiSystem.this);
+                }
             }
         });
     }
@@ -276,8 +280,9 @@ public class ZMidiSystem implements ZDisposable {
             synchronized (deviceMap) {
                 for (Iterator i = deviceMap.values().iterator(); i.hasNext();) {
                     Object d = i.next();
-                    if (d instanceof ZMidiDevice)
+                    if (d instanceof ZMidiDevice) {
                         ((ZMidiDevice) d).referencedClose();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -291,9 +296,12 @@ public class ZMidiSystem implements ZDisposable {
 
     ZMidiDevice getDevice(MidiDevice.Info dev) throws MidiUnavailableException {
         ZMidiDevice zd = deviceMap.get(dev);
-        if (zd == null) throw new MidiUnavailableException();
+        if (zd == null) {
+            throw new MidiUnavailableException();
+        }
         return zd;
     }
+
     /*
     public void setPortNeverToBeClosed(MidiDevice.Info devInfo, boolean val) throws MidiUnavailableException {
         ZMidiDevice zd = getDevice(devInfo);
@@ -311,7 +319,7 @@ public class ZMidiSystem implements ZDisposable {
         return getDevice(devInfo).getNeverCloses();
     }
 
-    */
+     */
     public void permitAll() {
 
     }
@@ -342,9 +350,10 @@ public class ZMidiSystem implements ZDisposable {
                 deviceMap.clear();
                 Zoeos z = Zoeos.getInstance();
                 ProgressSession ps = null;
-                if (visualFeedback)
-                //z.beginProgressElement(this, "Initializing Midi System", devices.length);
+                if (visualFeedback) //z.beginProgressElement(this, "Initializing Midi System", devices.length);
+                {
                     ps = z.getProgressSession("Initializing Midi System", devices.length);
+                }
                 MidiDevice.Info info;
                 try {
                     for (int n = 0; n < devices.length; n++) {
@@ -352,16 +361,19 @@ public class ZMidiSystem implements ZDisposable {
                             info = devices[n];
                             if (!dm_clone.containsKey(info)) {
                                 deviceMap.put(info, new ZMidiDevice(info));
-                            } else
+                            } else {
                                 deviceMap.put(info, dm_clone.get(info));
+                            }
                         } finally {
-                            if (visualFeedback)
+                            if (visualFeedback) {
                                 ps.updateStatus();
+                            }
                         }
                     }
                 } finally {
-                    if (visualFeedback)
+                    if (visualFeedback) {
                         ps.end();
+                    }
                 }
             }
         } finally {
@@ -373,8 +385,9 @@ public class ZMidiSystem implements ZDisposable {
     static ZMidiSystem instance;
 
     public static ZMidiSystem getInstance() {
-        if (instance == null)
+        if (instance == null) {
             instance = new ZMidiSystem();
+        }
         return instance;
     }
 
@@ -386,8 +399,9 @@ public class ZMidiSystem implements ZDisposable {
             while (i.hasNext()) {
                 dev = i.next();
                 try {
-                    if (isPortPermitted(dev))
+                    if (isPortPermitted(dev)) {
                         permitted.add(dev);
+                    }
                 } catch (MidiUnavailableException e) {
                     e.printStackTrace();
                 }
@@ -434,6 +448,7 @@ public class ZMidiSystem implements ZDisposable {
     static final String[] defaultIgnores = new String[]{"Broadcast", "Control", "Sync", "Wavetable", "Microsoft", "Java Sound", "MIDI Mapper"};
 
     class ZMidiDevice {
+
         final private MidiDevice.Info devInfo;
 
         //ZBoolPref ZPREF_neverClose;
@@ -457,8 +472,8 @@ public class ZMidiSystem implements ZDisposable {
 
         private ZMidiDevice(MidiDevice.Info di) {
             devInfo = di;
-           // ZPREF_neverClose = new Impl_ZBoolPref(Preferences.userNodeForPackage(ZMidiDevice.class), devInfo.getName()
-           //         + "_" + devInfo.getDescription() + "_neverClose", false, "Never referencedClose port", "");            //getRealDevice();
+            // ZPREF_neverClose = new Impl_ZBoolPref(Preferences.userNodeForPackage(ZMidiDevice.class), devInfo.getName()
+            //         + "_" + devInfo.getDescription() + "_neverClose", false, "Never referencedClose port", "");            //getRealDevice();
             ZPREF_permitted = new Impl_ZBoolPref(Preferences.userNodeForPackage(ZMidiDevice.class.getClass()), devInfo.getName()
                     + "_" + devInfo.getDescription() + "_permitted", getDefaultPermission(), "Permitted", "");            //getRealDevice();
         }
@@ -478,7 +493,7 @@ public class ZMidiSystem implements ZDisposable {
         public void setNeverCloses(boolean val) {
             ZPREF_neverClose.putValue(val);
         }
-        */
+         */
         public boolean getPermitted() {
             return ZPREF_permitted.getValue();
         }
@@ -489,9 +504,11 @@ public class ZMidiSystem implements ZDisposable {
 
         private boolean getDefaultPermission() {
             String name = devInfo.getName();
-            for (String s : defaultIgnores)
-            if (name.contains(s))
-                return false;
+            for (String s : defaultIgnores) {
+                if (name.contains(s)) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -510,8 +527,7 @@ public class ZMidiSystem implements ZDisposable {
         };
         t.start();
         lastCloseSuccessful = t.isSuceeded();
-        */
-
+         */
         public void assertOpen() throws MidiUnavailableException {
             midiLock.access();
             try {
@@ -529,9 +545,12 @@ public class ZMidiSystem implements ZDisposable {
         public void referencedClose() throws MidiUnavailableException {
             midiLock.access();
             try {
-                //if (  false){//getRealDevice().getMaxTransmitters() == 0) {
                 try {
-                    if (getRealDevice().isOpen() && getRealDevice().getTransmitters().size() == 0 && getRealDevice().getReceivers().size() == 0) {
+                    //if (  false){//getRealDevice().getMaxTransmitters() == 0) {
+                    if (getRealDevice().isOpen()
+                            && ((getRealDevice().getTransmitters() != null) && getRealDevice().getTransmitters().isEmpty())
+                            && ((getRealDevice().getReceivers() != null) && getRealDevice().getReceivers().isEmpty())) {
+
                         try {
                             System.out.println("Midi device closing: " + getRealDevice().getDeviceInfo().getName());
                             getRealDevice().close();
@@ -611,34 +630,39 @@ public class ZMidiSystem implements ZDisposable {
         }
 
         Inlet getInlet(Object owner, String name) throws MidiUnavailableException, MidiDeviceNotPermittedException {
-            if (getPermitted())
+            if (getPermitted()) {
                 return new Impl_Inlet(owner, name);
-            else
+            } else {
                 throw new MidiDeviceNotPermittedException(devInfo);
+            }
         }
 
         private BufferedInlet getBufferedInlet(Object owner, String name) throws MidiUnavailableException, MidiDeviceNotPermittedException {
-            if (getPermitted())
+            if (getPermitted()) {
                 return new Impl_BufferedInlet(owner, name);
-            else
+            } else {
                 throw new MidiDeviceNotPermittedException(devInfo);
+            }
         }
 
         private Outlet getOutlet(Object owner, String name) throws MidiUnavailableException, MidiDeviceNotPermittedException {
-            if (getPermitted())
+            if (getPermitted()) {
                 return new Impl_Outlet(owner, name);
-            else
+            } else {
                 throw new MidiDeviceNotPermittedException(devInfo);
+            }
         }
 
         private PausingOutlet getPausingOutlet(Object owner, String name) throws MidiUnavailableException, MidiDeviceNotPermittedException {
-            if (getPermitted())
+            if (getPermitted()) {
                 return new Impl_PausingOutlet(owner, name);
-            else
+            } else {
                 throw new MidiDeviceNotPermittedException(devInfo);
+            }
         }
 
         abstract class Impl_AbstractInlet {
+
             Object owner;
             String name;
             Transmitter xmit;
@@ -662,7 +686,7 @@ public class ZMidiSystem implements ZDisposable {
                 }
                 return xmit;
             }
-            */
+             */
             public MidiDevice.Info getDeviceInfo() throws MidiUnavailableException {
                 return getRealDevice().getDeviceInfo();
             }
@@ -677,6 +701,7 @@ public class ZMidiSystem implements ZDisposable {
         }
 
         class Impl_Inlet extends Impl_AbstractInlet implements Inlet {
+
             private static final int defTimeout = 1000;     // ms
             private volatile int timeout = defTimeout;
             private final List client_q = new ArrayList();
@@ -691,16 +716,18 @@ public class ZMidiSystem implements ZDisposable {
 
             public Object[] dispatchAndWaitForLongReply(Outlet o, MidiMessage m, Filterable filter) throws com.pcmsolutions.device.EMU.E4.RemoteUnreachableException, RemoteDeviceDidNotRespondException, RemoteMessagingException {
                 Object[] replies = dispatchAndWaitForLongReplies(o, m, filter, 1);
-                if (replies != null && replies.length > 0)
+                if (replies != null && replies.length > 0) {
                     return replies;
+                }
                 return null;
             }
 
             public Object dispatchAndWaitForReply(Outlet o, MidiMessage m, Filterable filter) throws RemoteMessagingException, RemoteDeviceDidNotRespondException, RemoteUnreachableException {
                 Object[] replies = new Object[0];
                 replies = dispatchAndWaitForReplies(o, m, filter, 1);
-                if (replies != null && replies.length > 0)
+                if (replies != null && replies.length > 0) {
                     return replies[0];
+                }
                 return null;
             }
 
@@ -722,16 +749,19 @@ public class ZMidiSystem implements ZDisposable {
             }
 
             private Object[] dispatchAndWaitForRepliesScheme1(final Outlet o, final MidiMessage m, final Filterable filter, final int reqdReplies, final boolean longReplies) throws com.pcmsolutions.device.EMU.E4.RemoteUnreachableException, RemoteDeviceDidNotRespondException, RemoteMessagingException {
-                if (reqdReplies < 1)
+                if (reqdReplies < 1) {
                     throw new IllegalArgumentException("Request for zero replies in inlet");
+                }
                 try {
-                    if (longReplies)
+                    if (longReplies) {
                         ZMidiSystem.beginLongSysexTransaction();
-                    else
+                    } else {
                         ZMidiSystem.beginShortSysexTransaction();
+                    }
                     try {
-                        if (xmit == null)
+                        if (xmit == null) {
                             throw new com.pcmsolutions.device.EMU.E4.RemoteUnreachableException("Midi transmitter not available");
+                        }
                         client_q.clear();
                         synchronized (midiIn_q) {
                             int mark = midiIn_q.mark();
@@ -750,10 +780,11 @@ public class ZMidiSystem implements ZDisposable {
                         }
                         return analyzeQueues(m, reqdReplies);
                     } finally {
-                        if (longReplies)
+                        if (longReplies) {
                             ZMidiSystem.endLongSysexTransaction();
-                        else
+                        } else {
                             ZMidiSystem.endShortSysexTransaction();
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     throw new com.pcmsolutions.device.EMU.E4.RemoteUnreachableException("Midi locking error");
@@ -763,18 +794,20 @@ public class ZMidiSystem implements ZDisposable {
 
             private Object[] analyzeQueues(MidiMessage m, int reqdReplies) throws RemoteDeviceDidNotRespondException, RemoteMessagingException {
                 if (client_q.size() >= reqdReplies) {
-                    if (client_q.size() > reqdReplies)
+                    if (client_q.size() > reqdReplies) {
                         System.out.println("more than requested, needed " + reqdReplies + " but got " + client_q.size());
+                    }
                     return client_q.toArray();
-                } else if (client_q.size() == 0)
+                } else if (client_q.size() == 0) {
                     throw new RemoteDeviceDidNotRespondException("No response(s) to message: " + ZUtilities.getByteString(m.getMessage()) + Zoeos.lineSeperator);
-                else {
+                } else {
                     throw new RemoteMessagingException("Insufficient number of responses to message: " + ZUtilities.getByteString(m.getMessage()) + Zoeos.lineSeperator + "required " + reqdReplies + ", received " + client_q.size());
                 }
             }
         }
 
         private class Impl_BufferedInlet extends Impl_AbstractInlet implements BufferedInlet {
+
             protected final ArrayList filters = new ArrayList();
             protected int lastMark = midiIn_q.mark();
 
@@ -785,8 +818,9 @@ public class ZMidiSystem implements ZDisposable {
             public List clearBuffer() {
                 ArrayList buffer = new ArrayList();
                 int fsz = filters.size();
-                if (fsz == 0)
+                if (fsz == 0) {
                     return buffer;
+                }
 
                 lastMark = midiIn_q.filterMidiIn_q((Filterable[]) filters.toArray(new Filterable[filters.size()]), devInfo, lastMark, buffer);
                 return buffer;
@@ -806,6 +840,7 @@ public class ZMidiSystem implements ZDisposable {
         }
 
         private class Impl_Outlet implements Outlet {
+
             Object owner;
             String name;
             Receiver recv;
@@ -845,6 +880,7 @@ public class ZMidiSystem implements ZDisposable {
         }
 
         private class Impl_PausingOutlet extends Impl_Outlet implements PausingOutlet {
+
             private Impl_ZThread timer;
             private volatile long pause = 0;
             private boolean isPaused = false;
@@ -861,17 +897,19 @@ public class ZMidiSystem implements ZDisposable {
             }
 
             private class TimerThread extends Impl_ZThread {
+
                 private Object start_mon = new Object();
                 private boolean running = false;
 
                 public void start() {
                     synchronized (start_mon) {
                         super.start();
-                        while (running == false)
+                        while (running == false) {
                             try {
                                 start_mon.wait();
                             } catch (InterruptedException e) {
                             }
+                        }
                     }
                 }
 
@@ -909,8 +947,9 @@ public class ZMidiSystem implements ZDisposable {
                 midiLock.access();
                 this.pause = pause;
                 try {
-                    if (recv == null)
+                    if (recv == null) {
                         throw new com.pcmsolutions.device.EMU.E4.RemoteUnreachableException("Midi receiver not available");
+                    }
                     synchronized (this) {
                         while (isPaused) {
                             try {
@@ -942,6 +981,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     public interface Inlet {
+
         public Object getOwner();
 
         public void discard();
@@ -979,6 +1019,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     public interface Outlet {
+
         public Object getOwner();
 
         public MidiDevice.Info getDeviceInfo() throws MidiUnavailableException;
@@ -989,6 +1030,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     public interface PausingOutlet extends ZMidiSystem.Outlet {
+
         public void dispatch(MidiMessage midiMessage, long param, long pause) throws com.pcmsolutions.device.EMU.E4.RemoteUnreachableException;
     }
 
@@ -996,6 +1038,7 @@ public class ZMidiSystem implements ZDisposable {
      * @author pmeehan
      */
     public static interface DeviceHunter {
+
         public List hunt(int id, MidiDevice.Info[] devices, int timeout);
 
         public List hunt(int id, MidiDevice.Info[] devices);
@@ -1006,6 +1049,7 @@ public class ZMidiSystem implements ZDisposable {
     }
 
     static class Impl_DeviceHunter implements DeviceHunter {
+
         private static final Impl_DeviceHunter INSTANCE = new Impl_DeviceHunter();
         private static final int defTimeout = 300;
         private int timeout = defTimeout;
@@ -1170,14 +1214,16 @@ public class ZMidiSystem implements ZDisposable {
         }
 
         private void cleanup() {
-            for (Iterator i = huntInlets.iterator(); i.hasNext();)
+            for (Iterator i = huntInlets.iterator(); i.hasNext();) {
                 ((BufferedInlet) i.next()).discard();
+            }
 
             huntInlets.clear();
 
             try {
-                for (Iterator i = huntOutlets.iterator(); i.hasNext();)
+                for (Iterator i = huntOutlets.iterator(); i.hasNext();) {
                     ((Outlet) i.next()).discard();
+                }
                 huntOutlets.clear();
             } catch (Exception e) {
                 System.out.println(e);

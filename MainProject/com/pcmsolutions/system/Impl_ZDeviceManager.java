@@ -65,6 +65,8 @@ class Impl_ZDeviceManager implements ZDeviceManager, ZDeviceListener {
     }
 
     private boolean checkLicensed(LicensedEntity le) {
+        return true;
+        /*
         int count = 0;
         synchronized (devices) {
             Iterator<ZExternalDevice> i = devices.keySet().iterator();
@@ -76,11 +78,13 @@ class Impl_ZDeviceManager implements ZDeviceManager, ZDeviceListener {
                 }
             }
         }
+
         // get max quantity for this type
         //int q = LicenseKeyManager.getLoadForType(LicenseKeyManager.demoPrefix + le.getLicenseProduct(), LicenseKeyManager.demoPrefix + le.getLicenseType(), Zoeos.version);
         int q = LicenseKeyManager.getLoadForType(le.getLicenseProduct(), le.getLicenseType(), Zoeos.version);
 
         if (q == 0 || count >= q)
+                */
         /*if (isDemo) {
             try {
                 LicenseKeyManager.addLicenseKey(LicenseKeyManager.parseKey(P200083.generateInternalLicense(le.getLicenseProduct(), LicenseKeyManager.demoPrefix + le.getLicenseType(), "DEMO_USER")));
@@ -90,9 +94,11 @@ class Impl_ZDeviceManager implements ZDeviceManager, ZDeviceListener {
                 e.printStackTrace();
             }
         } else */
+       /*
             return false;
 
         return true;
+        */
     }
 
     private void processDeviceHunt(final List replies) {
@@ -118,7 +124,6 @@ class Impl_ZDeviceManager implements ZDeviceManager, ZDeviceListener {
                                 ZExternalDevice dup = getDuplicate(d.getDeviceIdentityMessage());
                                 if (dup == null) {
                                     if (!Zoeos.isUnlicensed() && d instanceof LicensedEntity && !checkLicensed((LicensedEntity) d)) {
-                                        unlicensed.add(d);
                                         continue;
                                     } else if (Zoeos.isUnlicensed() && SecurityPreferences.expired()) {
                                         unlicensed.add(d);
@@ -149,14 +154,15 @@ class Impl_ZDeviceManager implements ZDeviceManager, ZDeviceListener {
                                 System.out.println(Zoeos.getZoeosTime() + ": " + "UNRESOLVED MIDI DEVICE: " + str.getReply());
                             }
                         }
+                        
                         if (unlicensed.size() > 0) {
-                            //UserMessaging.showError(unlicensed.size() + (unlicensed.size() == 1 ? " device was" : " devices were") + " not marshalled due to insufficient licensing");
+                            System.out.println(unlicensed.size() + (unlicensed.size() == 1 ? " device was" : " devices were") + " not marshalled due to insufficient licensing");
                             new FlashMsg(ZoeosFrame.getInstance(), 10000, 500, FlashMsg.colorWarning, "Evaluation Expired");
 
                             ZUtilities.zDisposeCollection(unlicensed);
                             unlicensed.clear();
                         }
-
+                        
                         if (duped == num)
                             new FlashMsg(ZoeosFrame.getInstance(), 2500, 500, FlashMsg.colorWarning, "NO DEVICES MARSHALLED FROM HUNT");
                     }

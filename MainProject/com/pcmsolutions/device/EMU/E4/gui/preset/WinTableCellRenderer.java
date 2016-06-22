@@ -29,7 +29,7 @@ public class WinTableCellRenderer extends AbstractTableCellRenderer {
         new WinTableCellRenderer(WinValueProfile.WIN_POS_HIGH_FADE)
     };
 
-    private int winPos;
+    private final int winPos;
     private WinValueProfile wvp;
     private boolean isRectangle;
 
@@ -37,9 +37,10 @@ public class WinTableCellRenderer extends AbstractTableCellRenderer {
         this.winPos = winPos;
     }
 
-    private static int graphUnderTextAlpha = 200;
+    private static final int graphUnderTextAlpha = 200;
 
   // static int count=0;
+    @Override
     protected void paintComponent(Graphics g) {
        // if ( true)
          //   return;

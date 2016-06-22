@@ -73,7 +73,7 @@ public class FadeButton extends JButton {
         g2.setColor(Color.white);
         g2.fillRect(0, 0, w, h);
         for (int i = 0; i < h; i++) {
-            g2.setColor(UIColors.applyAlpha(getBackground(), UIColors.getFuzzyAlpha(i, h, foregroundPolarity)));
+            g2.setColor(UIColors.applyAlpha(getBackground(), 127));
             g2.drawLine(0, i, w, i);
         }
 

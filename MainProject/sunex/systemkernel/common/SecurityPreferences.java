@@ -26,6 +26,7 @@ public class SecurityPreferences {
     }
 
     public static boolean expired() {
+        /*
         try {
             int tag = decodeTag(pref.getValue());
             System.out.println(tag);
@@ -35,6 +36,7 @@ public class SecurityPreferences {
             if (Zoeos.isUnlicensed())
                 return true;
         }
+        */
         return false;
     }
 

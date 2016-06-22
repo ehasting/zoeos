@@ -24,12 +24,15 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
         syncPanel();
     }
 
+    @Override
     protected void buildRunningPanel() {
         runningPanel = new JPanel() {
+            @Override
             public Color getForeground() {
                 return UIColors.getDefaultFG();
             }
 
+            @Override
             public Color getBackground() {
                 return UIColors.getDefaultBG();
             }
@@ -59,14 +62,17 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
         return enclosedComponent;
     }
 
+    @Override
     public Color getBackground() {
         return UIColors.getDefaultBG();
     }
 
+    @Override
     public Color getForeground() {
         return UIColors.getDefaultFG();
     }
 
+    @Override
     public void zDispose() {
         super.zDispose();
         if (enclosedComponent instanceof ZDisposable)
@@ -75,6 +81,7 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
         scrollPane = null;
     }
 
+    @Override
     public Integer getIndex() {
         if (enclosedComponent instanceof Indexable)
             return ((Indexable) enclosedComponent).getIndex();
@@ -84,8 +91,9 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
     private static final String vScrollTagId = DefaultDeviceEnclosurePanel.class.toString() + "VSCROLL";
     private static final String hScrollTagId = DefaultDeviceEnclosurePanel.class.toString() + "HSCROLL";
 
+    @Override
     public String retrieveComponentSession() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
             if (enclosedComponent instanceof SessionableComponent)
                 sb.append(((SessionableComponent) enclosedComponent).retrieveComponentSession());
@@ -102,6 +110,7 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
         return sb.toString();
     }
 
+    @Override
     public void restoreComponentSession(final String sessStr) {
 
         if (sessStr != null && !sessStr.equals("")) {
@@ -109,16 +118,14 @@ public class DefaultDeviceEnclosurePanel extends AbstractDeviceEnclosurePanel im
                 if (enclosedComponent instanceof SessionableComponent)
                     ((SessionableComponent) enclosedComponent).restoreComponentSession(sessStr);
 
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        String vsSess = ZUtilities.extractTaggedField(sessStr, vScrollTagId);
-                        if (vsSess != null)
-                            scrollPane.getVerticalScrollBar().setValue(Integer.parseInt(vsSess));
-                        String hsSess = ZUtilities.extractTaggedField(sessStr, hScrollTagId);
-                        if (hsSess != null)
-                            scrollPane.getHorizontalScrollBar().setValue(Integer.parseInt(hsSess));
-                        new DefaultListSelectionModel();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    String vsSess = ZUtilities.extractTaggedField(sessStr, vScrollTagId);
+                    if (vsSess != null)
+                        scrollPane.getVerticalScrollBar().setValue(Integer.parseInt(vsSess));
+                    String hsSess = ZUtilities.extractTaggedField(sessStr, hScrollTagId);
+                    if (hsSess != null)
+                        scrollPane.getHorizontalScrollBar().setValue(Integer.parseInt(hsSess));
+                    new DefaultListSelectionModel();
                 });
             } catch (Exception e) {
                 e.printStackTrace();

@@ -15,11 +15,11 @@ import java.io.Serializable;
  */
 public class UIColors implements Serializable {
     //static Color temp = applyAlpha(new Color(5,5,15), 230);//applyAlpha(Color.orange, 200);
-    static Color temp = new Color(5,5,15);//applyAlpha(Color.orange, 200);
+    static Color temp = new Color(5,15,5);//applyAlpha(Color.orange, 200);
 
     //public static int tableAlpha = 180;    // 22/08/04: original was 90
-    public static int tableAlpha = 100;    // 22/08/04: original was 90
-    public static int bubbleAlpha = 150;
+    public static int tableAlpha = 90;    // 22/08/04: original was 90
+    public static int bubbleAlpha = 120;
     public static int listAlpha = 100;
     public static int iconAlpha = 210;
     public static float tableSelectionGradientFactor = (float) 0.25;
@@ -30,18 +30,18 @@ public class UIColors implements Serializable {
     // default root colors
 
 
-    private final static Color grade1 = new Color(217, 217, 229);
-    private final static Color grade2 = new Color(237, 237, 243);
-    private final static Color grade3 = new Color(225, 225, 239);
-    private final static Color grade4 = new Color(211, 211, 225);
+    private final static Color grade1 = new Color(217, 229, 217);
+    private final static Color grade2 = new Color(237, 243, 237);
+    private final static Color grade3 = new Color(225, 239, 225);
+    private final static Color grade4 = new Color(211, 225, 211);
 
-    private final static Color orig_grade1 = new Color(157, 157, 189);
+    private final static Color orig_grade1 = new Color(157, 189, 157);
 
 
-    private final static Color darker_grade1 = new Color(157, 157, 189);
-    private final static Color darker_grade2 = new Color(210, 210, 225);
-    private final static Color darker_grade3 = new Color(178, 178, 214);
-    private final static Color darker_grade4 = new Color(142, 142, 178);
+    private final static Color darker_grade1 = new Color(157, 189, 157);
+    private final static Color darker_grade2 = new Color(210, 225, 210);
+    private final static Color darker_grade3 = new Color(178, 214, 178);
+    private final static Color darker_grade4 = new Color(142, 178, 142);
 
 
     private static Color tableFirstSectionHeaderBG = darker_grade1;
@@ -126,14 +126,14 @@ public class UIColors implements Serializable {
     private static Color tableBG = Color.white;
     //private static Color tableBG = new Color(30, 30, 60);
 
-    private static int tableRowHeight = (Toolkit.getDefaultToolkit().getScreenSize().getHeight() > 768 ? 18 : 16);
-    private static int tableBorderWidth = 10;
+    private static int tableRowHeight = 20;
+    private static int tableBorderWidth = 12;
     //private static int tableBorderWidth = 0;
 
     // PRESET
-    private static Color defaultBG = new Color(187, 187, 202);   // STD bluey gray darker
+    //private static Color defaultBG = new Color(187, 187, 202);   // STD bluey gray darker
     //private static Color defaultBG = new Color(200, 200, 215);   // STD bluey gray darker
-    //private static Color defaultBG = new Color(30, 30, 60);   // STD bluey gray darker
+    private static Color defaultBG = new Color(160, 202, 160);   // STD bluey gray darker
     //private static Color defaultFG = applyAlpha(Color.black, 212);   // used to be just dark gray
     private static Color defaultFG = temp;
 
@@ -192,7 +192,7 @@ public class UIColors implements Serializable {
     private static Color utilityButtonBG = tableFirstSectionBG;
     private static Color refreshButtonBG = tableThirdSectionBG;
 
-    private static double fuzzyAlphaSkew = 1.15;
+    private static final double fuzzyAlphaSkew = 1.15;
 
     public static int getTableRowHeight() {
         return tableRowHeight;
@@ -201,52 +201,6 @@ public class UIColors implements Serializable {
     public static void setTableRowHeight(int tableRowHeight) {
         UIColors.tableRowHeight = tableRowHeight;
 
-    }
-
-    private static int[] fadingInAlphas = new int[256];
-    private static int[] fadingOutAlphas = new int[256];
-
-    static {
-        for (int i = 0; i < 256; i++) {
-            int rand = (int) (Math.random() / 2);
-            int a = (int) (255 - i * fuzzyAlphaSkew - rand);
-            if (a < 0)
-                a = 0;
-            if (a > 255)
-                a = 255;
-            fadingInAlphas[i] = a;
-        }
-        for (int i = 0; i < 256; i++) {
-            int rand = (int) (Math.random() / 2);
-            int a = (int) (i * fuzzyAlphaSkew + rand);
-            if (a < 0)
-                a = 0;
-            if (a > 255)
-                a = 255;
-            fadingOutAlphas[i] = a;
-        }
-    }
-
-    public static int getFuzzyAlpha(int iteration, int max, boolean fadingIn) {
-        /* int rand = (int) (Math.random() * (255 / max) / 2);
-         int a = (fadingIn ? (int) (255 - iteration * (255 / max) * fuzzyAlphaSkew - rand) : (int) (iteration * (255 / max) * fuzzyAlphaSkew + rand));
-         if (a < 0)
-             a = 0;
-         if (a > 255)
-             a = 255;
-         return a;
-         */
-        // return (fadingIn?255-(iteration*255)/max:(iteration*255)/max);
-        return (fadingIn ? fadingInAlphas[(iteration * 255) / max] : fadingOutAlphas[(iteration * 255) / max]);
-    }
-
-
-    public static Border makeFuzzyBorder(Color bdrColor, int borderWidth) {
-        Border b = new LineBorder(bdrColor, 1, true);
-        for (int i = 0; i < borderWidth - 1; i++)
-            b = new CompoundBorder(new LineBorder(UIColors.applyAlpha(bdrColor, 255 - i * (255 / borderWidth)), 1, true), b);
-
-        return b;
     }
 
     public static Color getBeginBubbleColor() {

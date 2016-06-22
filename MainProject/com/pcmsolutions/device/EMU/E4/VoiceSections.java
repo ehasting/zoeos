@@ -19,6 +19,7 @@ class VoiceSections {
     public static final int VOICE_AUX_ENVELOPE = 0x80;
     public static final int VOICE_LFO = 0x100;
     public static final int VOICE_CORDS = 0x200;
+    public static final int VOICE_EDIT = 0x250;
 
     public static final String VOICE_AMP_TITLE = "Amp";
     public static final String VOICE_FILTER_TITLE = "Filter";
@@ -30,6 +31,7 @@ class VoiceSections {
     public static final String VOICE_CORDS_TITLE = "Cords";
     public static final String VOICE_ENVELOPES_TITLE = "Envelopes";
     public static final String VOICE_AMP_FILTER_TITLE = "Amp/Filt";
+    public static final String VOICE_EDIT_TITLE = "Voice Edit";
 
     public static final String VOICE_AMP_REDUCED_TITLE = "Amp";
     public static final String VOICE_FILTER_REDUCED_TITLE = "Filt";
@@ -41,6 +43,7 @@ class VoiceSections {
     public static final String VOICE_CORDS_REDUCED_TITLE = "Cords";
     public static final String VOICE_ENVELOPES_REDUCED_TITLE = "Env's";
     public static final String VOICE_AMP_FILTER_REDUCED_TITLE = "Amp/Filt";
+    public static final String VOICE_EDIT_REDUCED_TITLE = "Voice";
 
     public static final TitleProvider voiceAmpTitle = new TitleProvider.StaticTitleProvider(VOICE_AMP_TITLE, VOICE_AMP_REDUCED_TITLE, null);
     public static final TitleProvider voiceFilterTitle = new TitleProvider.StaticTitleProvider(VOICE_FILTER_TITLE, VOICE_FILTER_REDUCED_TITLE, null);
@@ -52,7 +55,8 @@ class VoiceSections {
     public static final TitleProvider voiceCordsTitle = new TitleProvider.StaticTitleProvider(VOICE_CORDS_TITLE, VOICE_CORDS_REDUCED_TITLE, null);
     public static final TitleProvider voiceEnvelopesTitle = new TitleProvider.StaticTitleProvider(VOICE_ENVELOPES_TITLE, VOICE_ENVELOPES_REDUCED_TITLE, null);
     public static final TitleProvider voiceAmpFilterTitle = new TitleProvider.StaticTitleProvider(VOICE_AMP_FILTER_TITLE, VOICE_AMP_FILTER_REDUCED_TITLE, null);
-
+    public static final TitleProvider voiceEditTitle = new TitleProvider.StaticTitleProvider(VOICE_EDIT_TITLE, VOICE_EDIT_REDUCED_TITLE, null);
+    
     public static String makeEnumeratedSectionString(int sections) {
         String s = "";
         if ((sections & VoiceSections.VOICE_CORDS) != 0)

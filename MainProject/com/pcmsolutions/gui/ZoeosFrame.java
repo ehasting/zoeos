@@ -161,77 +161,75 @@ public class ZoeosFrame extends ZJFrame {
 
         public Impl_ProgressSession(final String title, int maximum, final String cancelText) {
             this.maximum = (maximum == 0 ? 1 : maximum);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    pi = new ProgressStatusBarItem();
-                    statusBar.add(pi, JideBoxLayout.FLEXIBLE);
-                    pi.setProgressStatus(title);
-                    pi.setStatus("Running");
-                    pi.setCancelText(cancelText);
-                    if (!cancelText.equals(""))
-                        pi.setCancelCallback(new ProgressStatusBarItem.CancelCallback() {
-                            public void cancelPerformed() {
-                                end(true);
-                            }
-                        });
-                }
+            SwingUtilities.invokeLater(() -> {
+                pi = new ProgressStatusBarItem();
+                statusBar.add(pi, JideBoxLayout.FLEXIBLE);
+                pi.setProgressStatus(title);
+                pi.setStatus("Running");
+                pi.setCancelText(cancelText);
+                if (!cancelText.equals(""))
+                    pi.setCancelCallback(() -> {
+                        end(true);
+                });
             });
         }
 
+        @Override
         public void updateTitle(final String title) {
             SwingUtilities.invokeLater(new Runnable() {
+                @Override
                 public void run() {
                     pi.setProgressStatus(title);
                 }
             });
         }
 
+        @Override
         public void updateStatus(final int st) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    status = st;
-                    pi.setProgress((status * 100) / maximum);
-                }
+            SwingUtilities.invokeLater(() -> {
+                status = st;
+                pi.setProgress((status * 100) / maximum);
             });
         }
 
+        @Override
         public void end() {
             end(false);
         }
 
         void end(final boolean wasCancelled) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    pi.setProgress(100);
-                    pi.setStatus("Done");
-                    statusBar.remove(pi);
-                    statusBar.revalidate();
-                    statusBar.repaint();
-                    synchronized (Impl_ProgressSession.this) {
-                        cancelled = wasCancelled;
-                        done = true;
-                        Impl_ProgressSession.this.notifyAll();
-                    }
+            SwingUtilities.invokeLater(() -> {
+                pi.setProgress(100);
+                pi.setStatus("Done");
+                statusBar.remove(pi);
+                statusBar.revalidate();
+                statusBar.repaint();
+                synchronized (Impl_ProgressSession.this) {
+                    cancelled = wasCancelled;
+                    done = true;
+                    Impl_ProgressSession.this.notifyAll();
                 }
             });
         }
 
+        @Override
         public synchronized boolean isActive() {
             return !done && !cancelled;
         }
 
+        @Override
         public void setIndeterminate(final boolean ind) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    pi.setInterminate(ind);
-                }
+            SwingUtilities.invokeLater(() -> {
+                pi.setInterminate(ind);
             });
         }
 
+        @Override
         public void updateStatus() {
             updateStatus(++status);
         }
 
+        @Override
         public synchronized boolean isCancelled() {
             return cancelled;
         }
@@ -251,14 +249,17 @@ public class ZoeosFrame extends ZJFrame {
             midiManager = new ZMidiManagerDialog(this, false);
             licenseManager = new ZLicenseManagerDialog(this, false);
             tipOfTheDay = new TipOfTheDayDialog(this, new TipOfTheDaySource() {
+                @Override
                 public String getNextTip() {
                     return TipFactory.getNextTip();
                 }
 
+                @Override
                 public String getPreviousTip() {
                     return TipFactory.getPreviousTip();
                 }
             }, new AbstractAction("Show tips on startup") {
+                @Override
                 public void actionPerformed(ActionEvent e) {
                     if (e.getSource() instanceof JCheckBox) {
                         JCheckBox checkBox = (JCheckBox) e.getSource();
@@ -272,15 +273,11 @@ public class ZoeosFrame extends ZJFrame {
             tipOfTheDay.pack();
             tipOfTheDay.setLocation(300, 250);
             tipOfTheDay.getShowTipCheckBox().setSelected(ZoeosPreferences.ZPREF_showTipsAtStartup.getValue());
-            ZoeosPreferences.ZPREF_showTipsAtStartup.addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    tipOfTheDay.getShowTipCheckBox().setSelected(ZoeosPreferences.ZPREF_showTipsAtStartup.getValue());
-                }
+            ZoeosPreferences.ZPREF_showTipsAtStartup.addChangeListener((ChangeEvent e) -> {
+                tipOfTheDay.getShowTipCheckBox().setSelected(ZoeosPreferences.ZPREF_showTipsAtStartup.getValue());
             });
-            ZoeosPreferences.ZPREF_showTipsAtStartup.addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    tipOfTheDay.setShowTooltip(ZoeosPreferences.ZPREF_showTipsAtStartup.getValue());
-                }
+            ZoeosPreferences.ZPREF_showTipsAtStartup.addChangeListener((ChangeEvent e) -> {
+                tipOfTheDay.setShowTooltip(ZoeosPreferences.ZPREF_showTipsAtStartup.getValue());
             });
 
         } catch (Exception e) {
@@ -297,29 +294,54 @@ public class ZoeosFrame extends ZJFrame {
         final ViewInstance prop_vi = SystemViewFactory.providePropertiesView();
         try {
             zDesktopManager.addDesktopElement(new AbstractDesktopElement(prop_vi.getViewPath(), StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor()) {
+                @Override
                 protected JComponent createView() throws ComponentGenerationException {
                     return prop_vi.getView();
                 }
 
+                @Override
                 public boolean hasExpired() {
                     return false;
                 }
 
+                @Override
                 public int compareTo(Object o) {
                     return -1;
                 }
 
+                @Override
                 public DesktopElement getCopy() {
                     return this;
                 }
             });
-        } catch (ComponentGenerationException e) {
-            e.printStackTrace();
-        } catch (ChildViewNotAllowedException e) {
-            e.printStackTrace();
-        } catch (LogicalHierarchyException e) {
+        } catch (ComponentGenerationException | ChildViewNotAllowedException | LogicalHierarchyException e) {
             e.printStackTrace();
         }
+        /*
+        final ViewInstance piano_vi = SystemViewFactory.providePianoView();
+        try {
+        zDesktopManager.addDesktopElement(new AbstractDesktopElement(piano_vi.getViewPath(), true, StaticActivityContext.FALSE, new Impl_DesktopNodeDescriptor()) {
+        protected JComponent createView() throws ComponentGenerationException {
+        return piano_vi.getView();
+        }
+        public boolean hasExpired() {
+        return false;
+        }
+        public int compareTo(Object o) {
+        return -1;
+        }
+        public DesktopElement getCopy() {
+        return this;
+        }
+        });
+        } catch (ComponentGenerationException e) {
+        e.printStackTrace();
+        } catch (ChildViewNotAllowedException e) {
+        e.printStackTrace();
+        } catch (LogicalHierarchyException e) {
+        e.printStackTrace();
+        }
+         */ 
         /*
         final ViewInstance piano_vi = SystemViewFactory.providePianoView();
         try {
@@ -357,10 +379,8 @@ public class ZoeosFrame extends ZJFrame {
         this.getDockingManager().setUseFrameState(true);
 
         getDockingManager().setUndoLimit(10);
-        getDockingManager().addUndoableEditListener(new UndoableEditListener() {
-            public void undoableEditHappened(UndoableEditEvent e) {
-                refreshUndoRedoMenuItems();
-            }
+        getDockingManager().addUndoableEditListener((UndoableEditEvent e) -> {
+            refreshUndoRedoMenuItems();
         });
         ObjectConverterManager.initDefaultConverter();
         CellEditorManager.initDefaultEditor();
@@ -429,19 +449,17 @@ public class ZoeosFrame extends ZJFrame {
     }
 
     private void initFromZPrefs() {
-        ChangeListener prefListener = new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                if (e.getSource() == ZoeosPreferences.ZPREF_sideBarRollover)
-                    getDockingManager().setSidebarRollover(ZoeosPreferences.ZPREF_sideBarRollover.getValue());
-                else if (e.getSource() == ZoeosPreferences.ZPREF_animationSteps)
-                    getDockingManager().setSteps(ZoeosPreferences.ZPREF_animationSteps.getValue());
-                else if (e.getSource() == ZoeosPreferences.ZPREF_animationStepDelay)
-                    getDockingManager().setStepDelay(ZoeosPreferences.ZPREF_animationStepDelay.getValue());
-                else if (e.getSource() == ZoeosPreferences.ZPREF_animationInitDelay)
-                    getDockingManager().setInitDelay(ZoeosPreferences.ZPREF_animationInitDelay.getValue());
-                else if (e.getSource() == com.pcmsolutions.system.ZoeosPreferences.ZPREF_autoHideShowContentsHidden)
-                    getDockingManager().setAuthideShowingContentHidden(com.pcmsolutions.system.ZoeosPreferences.ZPREF_autoHideShowContentsHidden.getValue());
-            }
+        ChangeListener prefListener = (ChangeEvent e) -> {
+            if (e.getSource() == ZoeosPreferences.ZPREF_sideBarRollover)
+                getDockingManager().setSidebarRollover(ZoeosPreferences.ZPREF_sideBarRollover.getValue());
+            else if (e.getSource() == ZoeosPreferences.ZPREF_animationSteps)
+                getDockingManager().setSteps(ZoeosPreferences.ZPREF_animationSteps.getValue());
+            else if (e.getSource() == ZoeosPreferences.ZPREF_animationStepDelay)
+                getDockingManager().setStepDelay(ZoeosPreferences.ZPREF_animationStepDelay.getValue());
+            else if (e.getSource() == ZoeosPreferences.ZPREF_animationInitDelay)
+                getDockingManager().setInitDelay(ZoeosPreferences.ZPREF_animationInitDelay.getValue());
+            else if (e.getSource() == com.pcmsolutions.system.ZoeosPreferences.ZPREF_autoHideShowContentsHidden)
+                getDockingManager().setAuthideShowingContentHidden(com.pcmsolutions.system.ZoeosPreferences.ZPREF_autoHideShowContentsHidden.getValue());
         };
         ZoeosPreferences.addGlobalChangeListener(prefListener);
         getDockingManager().setSidebarRollover(ZoeosPreferences.ZPREF_sideBarRollover.getValue());
@@ -468,87 +486,67 @@ public class ZoeosFrame extends ZJFrame {
     }
 
     public void showDeviceManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                deviceManager.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            deviceManager.setVisible(true);
         });
     }
 
     public void hideDeviceManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                deviceManager.setVisible(false);
-            }
+        SwingUtilities.invokeLater(() -> {
+            deviceManager.setVisible(false);
         });
     }
 
     public void showTips() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                tipOfTheDay.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            tipOfTheDay.setVisible(true);
         });
     }
 
     public void hideTips() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                tipOfTheDay.setVisible(false);
-            }
+        SwingUtilities.invokeLater(() -> {
+            tipOfTheDay.setVisible(false);
         });
     }
 
     public void showMidiManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                midiManager.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            midiManager.setVisible(true);
         });
     }
 
     public void hideMidiManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                midiManager.setVisible(false);
-            }
+        SwingUtilities.invokeLater(() -> {
+            midiManager.setVisible(false);
         });
     }
 
     public void showLicenseManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                licenseManager.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            licenseManager.setVisible(true);
         });
     }
 
     public void hideLicenseManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                licenseManager.setVisible(false);
-            }
+        SwingUtilities.invokeLater(() -> {
+            licenseManager.setVisible(false);
         });
     }
 
     public void showSmdiManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                assertSmdiManager();
-                if (smdiManager == null)
-                    JOptionPane.showMessageDialog(ZoeosFrame.this, "SMDI unavailable");
-                else
-                    smdiManager.setVisible(true);
-            }
+        SwingUtilities.invokeLater(() -> {
+            assertSmdiManager();
+            if (smdiManager == null)
+                JOptionPane.showMessageDialog(ZoeosFrame.this, "SMDI unavailable");
+            else
+                smdiManager.setVisible(true);
         });
     }
 
     public void hideSmdiManager() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                if (smdiManager != null)
-                    smdiManager.setVisible(false);
-            }
+        SwingUtilities.invokeLater(() -> {
+            if (smdiManager != null)
+                smdiManager.setVisible(false);
         });
     }
 
@@ -560,6 +558,7 @@ public class ZoeosFrame extends ZJFrame {
     private void createMenuBar() {
         jMainMenu = new JMenuBar();
         addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 if (JOptionPane.showConfirmDialog(ZoeosFrame.this, "Are you sure you want to exit?", "Shutdown ZoeOS", JOptionPane.YES_NO_OPTION) == 0)
                     shutdown();
@@ -624,12 +623,14 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
         redoMenuItem.setEnabled(false);
 
         undoMenuItem.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 getDockingManager().undo();
                 refreshUndoRedoMenuItems();
             }
         });
         redoMenuItem.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 getDockingManager().redo();
                 refreshUndoRedoMenuItems();
@@ -642,6 +643,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("Custom Layout 1");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     getDockingManager().loadLayoutDataFrom(ZDesktopManager.LAYOUT_CUSTOM_1);
@@ -655,6 +657,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("Custom Layout 2");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     getDockingManager().loadLayoutDataFrom(ZDesktopManager.LAYOUT_CUSTOM_2);
@@ -668,6 +671,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("Custom Layout 3");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     getDockingManager().loadLayoutDataFrom(ZDesktopManager.LAYOUT_CUSTOM_3);
@@ -686,6 +690,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
         submenu = new JMenu("Save");
         item = new JMenuItem("as Custom Layout 1");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 getDockingManager().saveLayoutDataAs(ZDesktopManager.LAYOUT_CUSTOM_1);
             }
@@ -694,6 +699,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("as Custom Layout 2");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 getDockingManager().saveLayoutDataAs(ZDesktopManager.LAYOUT_CUSTOM_2);
             }
@@ -702,6 +708,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("as Custom Layout 3");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 getDockingManager().saveLayoutDataAs(ZDesktopManager.LAYOUT_CUSTOM_3);
             }
@@ -714,6 +721,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         item = new JMenuItem("Reset Layout");
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 // TODO!! investigate next two lines
                 getDockingManager().setUseFrameBounds(false);
@@ -729,6 +737,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
         item = new JMenuItem("Toggle Auto Hide Rollover");
         item.setMnemonic('T');
         item.addActionListener(new AbstractAction() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 //getDockingManager().setSidebarRollover(!getDockingManager().isSidebarRollover());
                 ZoeosPreferences.ZPREF_sideBarRollover.toggleValue();
@@ -757,9 +766,7 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         jmHelp.setText("Help");
         jmHelp.setMnemonic(KeyEvent.VK_H);
-        jmHelp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-            }
+        jmHelp.addActionListener((ActionEvent evt) -> {
         });
 
 // Find the HelpSet File and create the HelpSet object:
@@ -782,53 +789,43 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
         if (hb != null) {
             jmiHelp.addActionListener(new CSH.DisplayHelpFromSource(hb));
         } else
-            jmiHelp.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    UserMessaging.showInfo("Help not available");
-                }
-            });
+            jmiHelp.addActionListener((ActionEvent e) -> {
+                UserMessaging.showInfo("Help not available");
+        });
 
         jmHelp.add(jmiHelp);
 
         jmiTipOfTheDay.setText("Tip of the Day");
         jmiTipOfTheDay.setMnemonic(KeyEvent.VK_T);
-        jmiTipOfTheDay.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                tipOfTheDay.show();
-            }
+        jmiTipOfTheDay.addActionListener((ActionEvent e) -> {
+            tipOfTheDay.show();
         });
         jmHelp.add(jmiTipOfTheDay);
 
         jmiProductTour.setText("Zuonics Homepage & Product Tour");
         jmiProductTour.setMnemonic(KeyEvent.VK_B);
-        jmiProductTour.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                BrowserControl.displayURL("http://www.zuonics.com");
-                BrowserControl.displayURL("http://code.google.com/p/zoeos/");
-            }
+        jmiProductTour.addActionListener((ActionEvent evt) -> {
+            BrowserControl.displayURL("http://www.zuonics.com");
+            BrowserControl.displayURL("http://code.google.com/p/zoeos/");
         });
         jmHelp.add(jmiProductTour);
 //        jmHelp.addSeparator();
 
         jmiRequestFunctionality.setText("Enhancement request");
         jmiRequestFunctionality.setMnemonic(KeyEvent.VK_R);
-        jmiRequestFunctionality.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                BrowserControl.displayURL("mailto:request@zuonics.com?subject=Enhancement request for " + Zoeos.versionStr);
-                BrowserControl.displayURL("mailto:zoeoscommon@googlemail.com?subject=Enhancement request for " + Zoeos.versionStr);
-            }
+        jmiRequestFunctionality.addActionListener((ActionEvent evt) -> {
+            BrowserControl.displayURL("mailto:request@zuonics.com?subject=Enhancement request for " + Zoeos.versionStr);
+            BrowserControl.displayURL("mailto:zoeoscommon@googlemail.com?subject=Enhancement request for " + Zoeos.versionStr);
         });
         jmHelp.add(jmiRequestFunctionality);
 
         jmiReportBug.setText("Report a Bug");
         jmiReportBug.setMnemonic(KeyEvent.VK_B);
-        jmiReportBug.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                BrowserControl.displayURL("mailto:bugs@zuonics.com?subject=Bug in " + Zoeos.versionStr + "&body=< PASTE DEVICE CONFIGURATION HERE >");
-                BrowserControl.displayURL("mailto:zoeoscommon@googlemail.com?subject=Bug in " + Zoeos.versionStr + "&body=< PASTE DEVICE CONFIGURATION HERE >");
+        jmiReportBug.addActionListener((ActionEvent evt) -> {
+            BrowserControl.displayURL("mailto:bugs@zuonics.com?subject=Bug in " + Zoeos.versionStr + "&body=< PASTE DEVICE CONFIGURATION HERE >");
+            BrowserControl.displayURL("mailto:zoeoscommon@googlemail.com?subject=Bug in " + Zoeos.versionStr + "&body=< PASTE DEVICE CONFIGURATION HERE >");
 //mailto:astark1@unl.edu?subject=Comments from MailTo Syntax Page
 //JOptionPane.showMessageDialog(ZoeosFrame.getInstance(), "Not available in demo");
-            }
         });
         jmHelp.add(jmiReportBug);
 
@@ -846,12 +843,10 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         jmiAboutBox.setText("About");
         jmiAboutBox.setMnemonic(KeyEvent.VK_A);
-        jmiAboutBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                JOptionPane.showMessageDialog(ZoeosFrame.getInstance(), Zoeos.aboutMessage + "\n\nJVM version " +
-                        System.getProperty("java.version") + "\n" +
-                        " by " + System.getProperty("java.vendor"), "About ZoeOS", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(ZoeosFrame.class.getResource("/zoeosFrameIcon.gif")));
-            }
+        jmiAboutBox.addActionListener((ActionEvent evt) -> {
+            JOptionPane.showMessageDialog(ZoeosFrame.getInstance(), Zoeos.aboutMessage + "\n\nJVM version " +
+                    System.getProperty("java.version") + "\n" +
+                    " by " + System.getProperty("java.vendor"), "About ZoeOS", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(ZoeosFrame.class.getResource("/zoeosFrameIcon.gif")));
         });
         jmHelp.add(jmiAboutBox);
     }
@@ -869,32 +864,26 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
 
         jmiDeviceManager.setText("Devices");
         jmiDeviceManager.setMnemonic(KeyEvent.VK_D);
-        jmiDeviceManager.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                deviceManager.show();
-            }
+        jmiDeviceManager.addActionListener((ActionEvent evt) -> {
+            deviceManager.show();
         });
         jmManage.add(jmiDeviceManager);
 
         jmiMidiManager.setText("Midi");
         jmiMidiManager.setMnemonic(KeyEvent.VK_M);
-        jmiMidiManager.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                midiManager.show();
-            }
+        jmiMidiManager.addActionListener((ActionEvent evt) -> {
+            midiManager.show();
         });
         jmManage.add(jmiMidiManager);
 
         jmiSMDIManager.setText("SMDI");
         jmiSMDIManager.setMnemonic(KeyEvent.VK_S);
-        jmiSMDIManager.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                assertSmdiManager();
-                if (smdiManager == null)
-                    JOptionPane.showMessageDialog(ZoeosFrame.this, "SMDI unavailable");
-                else
-                    smdiManager.show();
-            }
+        jmiSMDIManager.addActionListener((ActionEvent evt) -> {
+            assertSmdiManager();
+            if (smdiManager == null)
+                JOptionPane.showMessageDialog(ZoeosFrame.this, "SMDI unavailable");
+            else
+                smdiManager.show();
         });
         jmManage.add(jmiSMDIManager);
 
@@ -918,11 +907,9 @@ final OvrInsStatusBarItem ovr = new OvrInsStatusBarItem();
         jmiExit = new JMenuItem();
         jmiExit.setText("Exit");
         jmiExit.setMnemonic(KeyEvent.VK_X);
-        jmiExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (JOptionPane.showConfirmDialog(ZoeosFrame.this, "Are you sure you want to exit?", "Shutdown ZoeOS", JOptionPane.YES_NO_OPTION) == 0)
-                    shutdown();
-            }
+        jmiExit.addActionListener((ActionEvent e) -> {
+            if (JOptionPane.showConfirmDialog(ZoeosFrame.this, "Are you sure you want to exit?", "Shutdown ZoeOS", JOptionPane.YES_NO_OPTION) == 0)
+                shutdown();
         });
         jmFile.add(jmiExit);
     }
@@ -1000,10 +987,7 @@ javax.swing.UIManager.setLookAndFeel(LookAndFeelFactory.ALLOY_LNF);
                         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
                     LookAndFeelFactory.installJideExtension();
                     System.out.println(os);
-                } catch (ClassNotFoundException e) {
-                } catch (InstantiationException e) {
-                } catch (IllegalAccessException e) {
-                } catch (UnsupportedLookAndFeelException e) {
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
                 }
                 Font defFont = new Font("Arial", Font.PLAIN, 10); //(Toolkit.getDefaultToolkit().getScreenSize().getHeight() > 768?11:10));
                 // UIManager.getDefaults().put("Label.font", defFont);
@@ -1013,7 +997,7 @@ javax.swing.UIManager.setLookAndFeel(LookAndFeelFactory.ALLOY_LNF);
                 ArrayList al = new ArrayList();
                 for (Enumeration e = UIManager.getDefaults().keys(); e.hasMoreElements();) {
                     Object o = e.nextElement();
-                    if (o.toString().indexOf(".font") != -1)
+                    if (o.toString().contains(".font"))
                         UIManager.getDefaults().put(o,
                                 defFont);
                     al.add(o);
@@ -1028,7 +1012,7 @@ javax.swing.UIManager.setLookAndFeel(LookAndFeelFactory.ALLOY_LNF);
                  al = new ArrayList();
                 for (Enumeration e = UIManager.getLookAndFeelDefaults().keys(); e.hasMoreElements();) {
                     Object o = e.nextElement();
-                    if (o.toString().indexOf(".font") != -1)
+                    if (o.toString().contains(".font"))
                         UIManager.getLookAndFeelDefaults().put(o,
                                 defFont);
                     al.add(o);
@@ -1104,23 +1088,22 @@ javax.swing.UIManager.setLookAndFeel(LookAndFeelFactory.ALLOY_LNF);
                 zf.showTips();
 
             if (ZoeosPreferences.ZPREF_autoHuntAtStartup.getValue() == true)
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        new Thread() {
-                            public void run() {
+                SwingUtilities.invokeLater(() -> {
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                Zoeos.getInstance().getDeviceManager().performHunt();
+                            } finally {
                                 try {
-                                    Zoeos.getInstance().getDeviceManager().performHunt();
-                                } finally {
-                                    try {
 //                                        com.exe4j.Controller.hide();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
-                        }.start();
-                    }
-                });
+                        }
+                    }.start();
+            });
             else
                 try {
 //                    com.exe4j.Controller.hide();

@@ -29,6 +29,7 @@ public class EditableCordTable extends CordTable implements VoiceParameterSelect
         setDropChecker(defaultDropGridChecker);
     }
 
+    @Override
     public void setSelection(final VoiceParameterSelection sel) {
       //  Impl_ZThread.ddTQ.postTask(new Impl_ZThread.Task(){
        //     public void doTask() {
@@ -41,12 +42,12 @@ public class EditableCordTable extends CordTable implements VoiceParameterSelect
       //  });
     }
 
+    @Override
     public boolean willAcceptCategory(int category) {
-        if (category == VoiceParameterSelection.VOICE_CORDS)
-            return true;
-        return false;
+        return category == VoiceParameterSelection.VOICE_CORDS;
     }
 
+    @Override
     public ContextEditablePreset.EditableVoice getEditableVoice() {
         return (ContextEditablePreset.EditableVoice) voices[0];
     }
