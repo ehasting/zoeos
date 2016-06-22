@@ -7,4 +7,4 @@ Features:
 Pending:
 * unsure of current Scsi status, since i can´t currently verify it.
 
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+![Screen shot of ZoeOS](https://raw.githubusercontent.com/ehasting/zoeos/master/media/screen1.png)
